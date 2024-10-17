@@ -5,23 +5,44 @@ import "./Auth.css";
 function SignInComponent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
+    setLoading(true);
     e.preventDefault();
 
-    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const credentials = {
+      email: email,
+      password: password,
+    };
+  
+    try {
+      const response = await fetch('https://projectfour-groupfour-api.onrender.com//sign-in', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
 
-    if (
-      storedUser &&
-      storedUser.email === email &&
-      storedUser.password === password
-    ) {
-      localStorage.setItem("isAuthenticated", true);
-      navigate("/");
-    } else {
-      setError("Invalid email or password");
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Assuming you get a token on successful sign in
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('refresh_token', data.refresh_token);
+        setLoading(false);
+        navigate('/');
+      } else {
+        const errorData = await response.json();
+        setLoading(false);
+        setError(errorData.message || 'Invalid email or password');
+      }
+    } catch (error) {
+      setLoading(false);
+      setError('Something went wrong. Please try again later.');
     }
   };
 
@@ -44,7 +65,7 @@ function SignInComponent() {
           required
         />
         {error && <p className="error">{error}</p>}
-        <button type="submit">Sign In</button>
+        <button type="submit" disabled={loading}>{loading ? "Please wait..." : "Sign In"}</button>
       </form>
       <p>
         <Link to="/forgot-password">Forgot Password?</Link>

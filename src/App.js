@@ -11,30 +11,33 @@ import MovieListComponent from "./components/MovieList";
 import DailyTasksComponent from "./components/DailyTasks";
 import ProfileComponent from "./components/Profile";
 import ContentCalendarComponent from "./components/ContentCalendar"; // Import the ContentCalendarComponent
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/" element={<HomeComponent />} />
           <Route path="/signin" element={<SignInComponent />} />
           <Route path="/signup" element={<SignUpComponent />} />
           <Route
             path="/forgot-password"
             element={<ForgotPasswordComponent />}
           />
-          <Route path="/reset-password" element={<ResetPasswordComponent />} />
-          <Route path="/quick-notes" element={<QuickNotesComponent />} />
-          <Route path="/reading-list" element={<ReadingListComponent />} />
-          <Route path="/movie-list" element={<MovieListComponent />} />
-          <Route path="/daily-tasks" element={<DailyTasksComponent />} />
-          <Route path="/profile" element={<ProfileComponent />} />
-          <Route
-            path="/content-calendar"
-            element={<ContentCalendarComponent />}
-          />{" "}
-          {/* Set up route for the Content Calendar */}
+          <Route path="/reset-password/:token" element={<ResetPasswordComponent />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<HomeComponent />} />
+            <Route path="/quick-notes" element={<QuickNotesComponent />} />
+            <Route path="/reading-list" element={<ReadingListComponent />} />
+            <Route path="/movie-list" element={<MovieListComponent />} />
+            <Route path="/daily-tasks" element={<DailyTasksComponent />} />
+            <Route path="/profile" element={<ProfileComponent />} />
+            <Route
+              path="/content-calendar"
+              element={<ContentCalendarComponent />}
+            />{" "}
+            {/* Set up route for the Content Calendar */}
+          </Route>
         </Routes>
       </div>
     </Router>

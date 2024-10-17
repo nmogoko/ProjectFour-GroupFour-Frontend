@@ -6,31 +6,48 @@ function SignUpComponent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
+    setLoading(true);
     e.preventDefault();
 
-    const existingUser = JSON.parse(localStorage.getItem("user"));
+    try {
+      if (password !== confirmPassword) {
+        setError('password and confirm password do not match.');
+        return;
+      }
 
-    if (existingUser && existingUser.email === email) {
-      setError(
-        "This email is already registered. Please use a different email."
-      );
-      return;
+      const credentials = {
+        email: email,
+        password: password,
+      };
+
+      const response = await fetch('https://projectfour-groupfour-api.onrender.com//sign-up', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        setLoading(false);
+        alert(data.msg || "User created successfully.");
+        navigate('/signin');
+      } else {
+        const errorData = await response.json();
+        setLoading(false);
+        setError(errorData.message || 'Invalid email or password');
+      }
+    } catch (error) {
+      setLoading(false);
+      setError('Something went wrong. Please try again later.');
     }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    const newUser = { email, password };
-    localStorage.setItem("user", JSON.stringify(newUser));
-
-    // Redirect to sign-in page
-    navigate("/signin");
   };
 
   return (
@@ -59,7 +76,7 @@ function SignUpComponent() {
           required
         />
         {error && <p className="error">{error}</p>}
-        <button type="submit">Sign Up</button>
+        <button type="submit" disabled={loading}>{loading ? "Please wait..." : "Sign Up"}</button>
       </form>
     </div>
   );

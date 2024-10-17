@@ -9,9 +9,20 @@ function HomeComponent() {
   );
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    navigate("/signin");
+  const handleLogout = async () => {
+    const token = localStorage.getItem('access_token');
+    await fetch('https://projectfour-groupfour-api.onrender.com//logout', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    // Redirect to login or home page
+    navigate('/signin');
   };
 
   useEffect(() => {

@@ -4,44 +4,48 @@ import "./Auth.css";
 
 function ForgotPasswordComponent() {
   const [email, setEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handlePasswordReset = (e) => {
+  const handleForgotPassword = async (e) => {
+    setLoading(true);
     e.preventDefault();
 
-    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const credentials = {
+      email: email,
+    };
+  
+    try {
+      const response = await fetch('https://projectfour-groupfour-api.onrender.com//forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
 
-    if (storedUser && storedUser.email === email) {
-      if (newPassword === storedUser.password) {
-        setError("New password cannot be the same as the old password");
-        return;
+      if (response.ok) {
+        const data = await response.json();
+        // Assuming a success message is returned, you might want to show a success notification instead of redirecting
+        alert(data.message || 'Check your email for instructions to reset your password.');
+        setLoading(false);
+        navigate('/'); // Navigate if you want to redirect after success
+      } else {
+        const errorData = await response.json();
+        setLoading(false);
+        setError(errorData.msg || 'An error occurred. Please try again.');
       }
-
-      if (newPassword !== confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ ...storedUser, password: newPassword })
-      );
-      alert(
-        "Password successfully reset! Please sign in with your new password."
-      );
-      navigate("/signin");
-    } else {
-      setError("Email not found");
+    } catch (error) {
+      setLoading(false);
+      setError('Something went wrong. Please try again later.');
     }
   };
 
   return (
     <div className="auth-container">
-      <h1>Reset Password</h1>
-      <form onSubmit={handlePasswordReset}>
+      <h1>Forgot Password</h1>
+      <form onSubmit={handleForgotPassword}>
         <input
           type="email"
           value={email}
@@ -49,22 +53,8 @@ function ForgotPasswordComponent() {
           placeholder="Enter your email"
           required
         />
-        <input
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="Enter new password"
-          required
-        />
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm new password"
-          required
-        />
         {error && <p className="error">{error}</p>}
-        <button type="submit">Reset Password</button>
+        <button type="submit" disabled={loading}>{loading ? "Please wait..." : "Send Reset Password Email"}</button>
       </form>
     </div>
   );

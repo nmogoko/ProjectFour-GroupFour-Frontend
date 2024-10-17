@@ -1,34 +1,51 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./Auth.css";
 
 function ResetPasswordComponent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const location = useLocation();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const email = location.state?.email; // Email passed from ForgotPasswordComponent
+  const { token } = useParams();
 
-  const handleResetPassword = (e) => {
+  const handleResetPassword = async (e) => {
+    setLoading(true);
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+    try {
+      if (password !== confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
 
-    const storedUser = JSON.parse(localStorage.getItem("user"));
+      const credentials = {
+        new_password: password,
+      };
 
-    if (storedUser && storedUser.email === email) {
-      storedUser.password = password;
-      localStorage.setItem("user", JSON.stringify(storedUser));
-      alert(
-        "Password successfully reset! Please sign in with your new password."
-      );
-      navigate("/signin");
-    } else {
-      setError("Something went wrong");
+      const response = await fetch(`https://projectfour-groupfour-api.onrender.com//reset-password/${token}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Assuming a success message is returned, you might want to show a success notification instead of redirecting
+        alert(data.message || 'Password has been reset successfully.');
+        setLoading(false);
+        navigate('/'); // Navigate if you want to redirect after success
+      } else {
+        const errorData = await response.json();
+        setLoading(false);
+        setError(errorData.msg || 'An error occurred. Please try again.');
+      }
+    } catch (error) {
+      setLoading(false);
+      setError('Something went wrong. Please try again later.');
     }
   };
 
@@ -51,7 +68,7 @@ function ResetPasswordComponent() {
           required
         />
         {error && <p className="error">{error}</p>}
-        <button type="submit">Reset Password</button>
+        <button type="submit" disabled={loading}>{loading ? "Please wait..." : "Reset Password"}</button>
       </form>
     </div>
   );
