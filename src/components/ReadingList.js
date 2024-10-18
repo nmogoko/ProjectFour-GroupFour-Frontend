@@ -1,21 +1,39 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./ReadingList.css";
+import { fetchWithAuth } from "../utils";
 
 function ReadingListComponent() {
   const [books, setBooks] = useState([]);
   const [newBook, setNewBook] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [error, setError] = useState("");
 
-  useEffect(()=>{
-    fetch("https://projectfour-groupfour-api.onrender.com/reading-list")
-    .then(response=>response.json())
-    .then(data=>{
-      console.log(data)
-      setBooks(data)})
-    .catch((error)=> console.log(error))
-  }, [])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetchWithAuth(
+          "https://projectfour-groupfour-api.onrender.com/reading-list",
+          {
+            method: "GET",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const result = await response.json();
+        console.log(result);
+        setBooks(result);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const addBook = () => {
     if (newBook.trim() !== "") {
@@ -61,9 +79,13 @@ function ReadingListComponent() {
         />
         <button onClick={addBook}>Add Book</button>
       </div>
+      {error && <h3>{error}</h3>}
       <ul className="books-list">
         {books.map((book) => (
-          <li key={book.book_id} className={`book-item ${book.status ==="Read" ? "read" : ""}`}>
+          <li
+            key={book.book_id}
+            className={`book-item ${book.status === "Read" ? "read" : ""}`}
+          >
             <div className="left-section">
               <input
                 type="checkbox"
