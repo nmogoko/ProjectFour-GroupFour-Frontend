@@ -17,32 +17,35 @@ function SignInComponent() {
       email: email,
       password: password,
     };
-  
+
     try {
-      const response = await fetch('https://projectfour-groupfour-api.onrender.com//sign-in', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      const response = await fetch(
+        "https://projectfour-groupfour-api.onrender.com/sign-in",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(credentials),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Assuming you get a token on successful sign in
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('refresh_token', data.refresh_token);
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("refresh_token", data.refresh_token);
         setLoading(false);
-        navigate('/');
+        navigate("/");
       } else {
         const errorData = await response.json();
         setLoading(false);
-        setError(errorData.message || 'Invalid email or password');
+        setError(errorData.message || "Invalid email or password");
       }
     } catch (error) {
       setLoading(false);
-      setError('Something went wrong. Please try again later.');
+      setError("Something went wrong. Please try again later.");
     }
   };
 
@@ -65,7 +68,9 @@ function SignInComponent() {
           required
         />
         {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={loading}>{loading ? "Please wait..." : "Sign In"}</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Please wait..." : "Sign In"}
+        </button>
       </form>
       <p>
         <Link to="/forgot-password">Forgot Password?</Link>

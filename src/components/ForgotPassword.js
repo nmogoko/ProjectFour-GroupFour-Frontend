@@ -15,30 +15,36 @@ function ForgotPasswordComponent() {
     const credentials = {
       email: email,
     };
-  
+
     try {
-      const response = await fetch('https://projectfour-groupfour-api.onrender.com//forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      const response = await fetch(
+        "https://projectfour-groupfour-api.onrender.com/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(credentials),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
         // Assuming a success message is returned, you might want to show a success notification instead of redirecting
-        alert(data.message || 'Check your email for instructions to reset your password.');
+        alert(
+          data.message ||
+            "Check your email for instructions to reset your password."
+        );
         setLoading(false);
-        navigate('/'); // Navigate if you want to redirect after success
+        navigate("/"); // Navigate if you want to redirect after success
       } else {
         const errorData = await response.json();
         setLoading(false);
-        setError(errorData.msg || 'An error occurred. Please try again.');
+        setError(errorData.msg || "An error occurred. Please try again.");
       }
     } catch (error) {
       setLoading(false);
-      setError('Something went wrong. Please try again later.');
+      setError("Something went wrong. Please try again later.");
     }
   };
 
@@ -54,7 +60,9 @@ function ForgotPasswordComponent() {
           required
         />
         {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={loading}>{loading ? "Please wait..." : "Send Reset Password Email"}</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Please wait..." : "Send Reset Password Email"}
+        </button>
       </form>
     </div>
   );
