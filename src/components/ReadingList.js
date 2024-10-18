@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./ReadingList.css";
 
@@ -7,6 +7,15 @@ function ReadingListComponent() {
   const [newBook, setNewBook] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingText, setEditingText] = useState("");
+
+  useEffect(()=>{
+    fetch("https://projectfour-groupfour-api.onrender.com/reading-list")
+    .then(response=>response.json())
+    .then(data=>{
+      console.log(data)
+      setBooks(data)})
+    .catch((error)=> console.log(error))
+  }, [])
 
   const addBook = () => {
     if (newBook.trim() !== "") {
@@ -53,15 +62,15 @@ function ReadingListComponent() {
         <button onClick={addBook}>Add Book</button>
       </div>
       <ul className="books-list">
-        {books.map((book, index) => (
-          <li key={index} className={`book-item ${book.read ? "read" : ""}`}>
+        {books.map((book) => (
+          <li key={book.book_id} className={`book-item ${book.status ==="Read" ? "read" : ""}`}>
             <div className="left-section">
               <input
                 type="checkbox"
                 checked={book.read}
-                onChange={() => toggleRead(index)}
+                onChange={() => toggleRead(book.book_id)}
               />
-              {editingIndex === index ? (
+              {editingIndex === book.book_id ? (
                 <input
                   type="text"
                   value={editingText}
@@ -75,12 +84,12 @@ function ReadingListComponent() {
                     textDecoration: book.read ? "line-through" : "none",
                   }}
                 >
-                  {book.title}
+                  {book.book_title}
                 </span>
               )}
             </div>
             <div className="right-section">
-              {editingIndex === index ? (
+              {editingIndex === book.book_id ? (
                 <button className="save-btn" onClick={saveEdit}>
                   Save
                 </button>
@@ -88,13 +97,13 @@ function ReadingListComponent() {
                 <>
                   <button
                     className="edit-btn"
-                    onClick={() => startEditing(index)}
+                    onClick={() => startEditing(book.book_id)}
                   >
                     Edit
                   </button>
                   <button
                     className="delete-btn"
-                    onClick={() => deleteBook(index)}
+                    onClick={() => deleteBook(book.book_id)}
                   >
                     Delete
                   </button>
