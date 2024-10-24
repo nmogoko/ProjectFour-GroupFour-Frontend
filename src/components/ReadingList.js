@@ -35,36 +35,88 @@ function ReadingListComponent() {
     fetchData();
   }, []);
 
-  const addBook = () => {
-    if (newBook.trim() !== "") {
-      setBooks([...books, { title: newBook, read: false }]);
-      setNewBook("");
+  const addBook = async () => {
+    try {
+      const response = await fetchWithAuth(
+        "https://projectfour-groupfour-api.onrender.com/create-reading-list",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            book_title: newBook,
+            status: "Unread",
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+
+      const result = await response.json();
+      console.log(result);
+      setNewBook("")
+      setBooks((prevBooks) => [...prevBooks, result]);
+    } catch (err) {
+      console.log(err);
+      setError(err.message);
     }
   };
+  const updateBook = async (bookId, updatedFields) => {
+    try {
+      const response = await fetchWithAuth(
+        `https://projectfour-groupfour-api.onrender.com/update-reading-list/${bookId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(updatedFields),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-  const deleteBook = (index) => {
-    const updatedBooks = books.filter((_, i) => i !== index);
-    setBooks(updatedBooks);
-  };
+      if (!response.ok) {
+        throw new Error("Failed to update book");
+      }
 
-  const startEditing = (index) => {
-    setEditingIndex(index);
-    setEditingText(books[index].title);
-  };
-
-  const saveEdit = () => {
-    if (editingText.trim() !== "") {
-      const updatedBooks = [...books];
-      updatedBooks[editingIndex].title = editingText;
-      setBooks(updatedBooks);
-      setEditingIndex(null);
+    const updatedBook = await response.json();
+      setBooks((prevBooks) =>
+        prevBooks.map((book) =>
+          book.book_id === bookId ? updatedBook : book
+        )
+      );
+    } catch (err) {
+   
+      setError(err.message);
     }
   };
+ const deleteBook = async (id) => {
+  try {
+    const response = await fetchWithAuth(
+      `https://projectfour-groupfour-api.onrender.com/delete-reading-list/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
 
-  const toggleRead = (index) => {
-    const updatedBooks = [...books];
-    updatedBooks[index].read = !updatedBooks[index].read;
-    setBooks(updatedBooks);
+    if (!response.ok) {
+      throw new Error("Failed to fetch data");
+    }
+
+    const result = await response.json();
+    console.log(result);
+    setBooks(books.filter(book => book.book_id !== id));
+  } catch (err) {
+    setError(err.message);
+  }
+  };
+
+  const startEditing = (id) => {
+    setEditingIndex(id);
+    const foundBook = books.find(book => book.book_id == id).book_title;
+    setEditingText(foundBook);
   };
 
   return (
@@ -81,16 +133,16 @@ function ReadingListComponent() {
       </div>
       {error && <h3>{error}</h3>}
       <ul className="books-list">
-        {books.map((book) => (
+        {books.map((book, index) => (
           <li
             key={book.book_id}
-            className={`book-item ${book.status === "Read" ? "read" : ""}`}
+            className={`book-item ${book?.status === "Read" ? "read" : ""}`}
           >
             <div className="left-section">
               <input
                 type="checkbox"
-                checked={book.read}
-                onChange={() => toggleRead(book.book_id)}
+                checked={book?.status === "Read"}
+                onChange={() => updateBook(book?.book_id, {status: book?.status === "Read" ? "Unread" : "Read"})}
               />
               {editingIndex === book.book_id ? (
                 <input
@@ -103,7 +155,7 @@ function ReadingListComponent() {
                 <span
                   className="book-title"
                   style={{
-                    textDecoration: book.read ? "line-through" : "none",
+                    textDecoration: book.status === "Read" ? "line-through" : "none",
                   }}
                 >
                   {book.book_title}
@@ -112,7 +164,10 @@ function ReadingListComponent() {
             </div>
             <div className="right-section">
               {editingIndex === book.book_id ? (
-                <button className="save-btn" onClick={saveEdit}>
+                <button className="save-btn" onClick={()=>{
+                  updateBook(book.book_id, {book_title:editingText})
+                  setEditingIndex(null)
+                  }}>
                   Save
                 </button>
               ) : (
