@@ -8,36 +8,83 @@ function MovieListComponent() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingText, setEditingText] = useState("");
 
-  const addMovie = () => {
-    if (newMovie.trim() !== "") {
-      setMovies([...movies, { title: newMovie, watched: false }]);
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const response = await fetchWithAuth("https://projectfour-groupfour-api.onrender.com/movies", {
+          method: "GET",
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch movies");
+
+        const result = await response.json();
+        setMovies(result);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  const addMovie = async () => {
+    try {
+      const response = await fetchWithAuth("https://projectfour-groupfour-api.onrender.com/create_movies", {
+        method: "POST",
+        body: JSON.stringify({ title: newMovie, watched: false }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) throw new Error("Failed to add movie");
+
+      const result = await response.json();
+      setMovies((prevMovies) => [...prevMovies, result]);
       setNewMovie("");
+    } catch (err) {
+      setError(err.message);
     }
   };
 
-  const deleteMovie = (index) => {
-    const updatedMovies = movies.filter((_, i) => i !== index);
-    setMovies(updatedMovies);
+  const updateMovie = async (movieId, updatedFields) => {
+    try {
+      const response = await fetchWithAuth(
+        `https://projectfour-groupfour-api.onrender.com/update-movie-list/${movieId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(updatedFields),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update movie");
+
+      const updatedMovie = await response.json();
+      setMovies((prevMovies) =>
+        prevMovies.map((movie) => (movie.movie_id === movieId ? updatedMovie : movie))
+      );
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const deleteMovie = async (movieId) => {
+    try {
+      const response = await fetchWithAuth(
+        `https://projectfour-groupfour-api.onrender.com/delete_movie/${movieId}`,
+        { method: "DELETE" }
+      );
+
+      if (!response.ok) throw new Error("Failed to delete movie");
+
+      setMovies((prevMovies) => prevMovies.filter((movie) => movie.movie_id !== movieId));
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const startEditing = (index) => {
     setEditingIndex(index);
     setEditingText(movies[index].title);
-  };
-
-  const saveEdit = () => {
-    if (editingText.trim() !== "") {
-      const updatedMovies = [...movies];
-      updatedMovies[editingIndex].title = editingText;
-      setMovies(updatedMovies);
-      setEditingIndex(null);
-    }
-  };
-
-  const toggleWatched = (index) => {
-    const updatedMovies = [...movies];
-    updatedMovies[index].watched = !updatedMovies[index].watched;
-    setMovies(updatedMovies);
   };
 
   return (
@@ -55,16 +102,16 @@ function MovieListComponent() {
       <ul className="movies-list">
         {movies.map((movie, index) => (
           <li
-            key={index}
+            key={movie.movie_id}
             className={`movie-item ${movie.watched ? "watched" : ""}`}
           >
             <div className="left-section">
               <input
                 type="checkbox"
                 checked={movie.watched}
-                onChange={() => toggleWatched(index)}
+                onChange={() => updateMovie(movie?.movie_id, {status: movie?.status === "Watched" ? "Unwatched" : "Watched"})}
               />
-              {editingIndex === index ? (
+              {editingIndex === movie.movie_id ? (
                 <input
                   type="text"
                   value={editingText}
@@ -75,29 +122,32 @@ function MovieListComponent() {
                 <span
                   className="movie-title"
                   style={{
-                    textDecoration: movie.watched ? "line-through" : "none",
+                    textDecoration: movie.status === "Watched" ? "line-through" : "none",
                   }}
                 >
-                  {movie.title}
+                  {movie.movie.title}
                 </span>
               )}
             </div>
             <div className="right-section">
-              {editingIndex === index ? (
-                <button className="save-btn" onClick={saveEdit}>
+              {editingIndex === movie.movie_id ? (
+                <button className="save-btn" onClick={()=>{
+                  updateMovie(movie.movie_id, {movie_title:editingText})
+                  setEditingIndex(null)
+                  }}>
                   Save
                 </button>
               ) : (
                 <>
                   <button
                     className="edit-btn"
-                    onClick={() => startEditing(index)}
+                    onClick={() => startEditing(movie.movie_id)}
                   >
                     Edit
                   </button>
                   <button
                     className="delete-btn"
-                    onClick={() => deleteMovie(index)}
+                    onClick={() => deleteMovie(movie.movie_id)}
                   >
                     Delete
                   </button>
