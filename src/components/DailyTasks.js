@@ -54,7 +54,7 @@ function DailyTasksComponent() {
   const updateTask = async (taskId, updatedFields) => {
     try {
       const response = await fetchWithAuth(
-        `https://api.example.com/update-task/${taskId}`,
+        `https://projectfour-groupfour-api.onrender.com/update-task/${taskId}`,
         {
           method: "PATCH",
           body: JSON.stringify(updatedFields),
@@ -77,7 +77,7 @@ function DailyTasksComponent() {
   const deleteTask = async (taskId) => {
     try {
       const response = await fetchWithAuth(
-        `https://api.example.com/delete-task/${taskId}`,
+        `https://projectfour-groupfour-api.onrender.com/delete_task/${taskId}`,
         { method: "DELETE" }
       );
 
