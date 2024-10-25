@@ -84,9 +84,10 @@ function MovieListComponent() {
     }
   };
 
-  const startEditing = (index) => {
-    setEditingIndex(index);
-    setEditingText(movies[index].title);
+  const startEditing = (id) => {
+    setEditingIndex(id);
+    const foundMovie = movies.find(movie => movie.movie_id === id).title;
+    setEditingText(foundMovie);
   };
 
   return (
