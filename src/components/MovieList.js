@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./MovieList.css";
+import { fetchWithAuth } from "../utils";
 
 function MovieListComponent() {
   const [movies, setMovies] = useState([]);
