@@ -8,6 +8,7 @@ function MovieListComponent() {
   const [newMovie, setNewMovie] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -100,6 +101,7 @@ function MovieListComponent() {
         />
         <button onClick={addMovie}>Add Movie</button>
       </div>
+      {error && <h3>{error}</h3>}
       <ul className="movies-list">
         {movies.map((movie, index) => (
           <li
