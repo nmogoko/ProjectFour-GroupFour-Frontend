@@ -64,6 +64,7 @@ function ReadingListComponent() {
       setError(err.message);
     }
   };
+
   const updateBook = async (bookId, updatedFields) => {
     try {
       const response = await fetchWithAuth(
@@ -92,6 +93,7 @@ function ReadingListComponent() {
       setError(err.message);
     }
   };
+  
  const deleteBook = async (id) => {
   try {
     const response = await fetchWithAuth(
