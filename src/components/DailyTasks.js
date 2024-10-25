@@ -114,7 +114,7 @@ function DailyTasksComponent() {
       <ul id="tasks-list">
         {tasks.map((task, index) => (
           <li
-            key={movie.movie_id}
+            key={task.task_id}
             className={`task-item ${task?.status === "Done" ? "Undone" : ""}`}
           >
             {editingIndex === task.task_id ? (
@@ -125,7 +125,10 @@ function DailyTasksComponent() {
                   value={editingText}
                   onChange={(e) => setEditingText(e.target.value)}
                 />
-                <button onClick={saveEdit} className="save-btn">
+                <button className="save-btn" onClick={()=>{
+                  updateTask(task.task_id, {task_title:editingText})
+                  setEditingIndex(null)
+                  }}>
                   Save
                 </button>
               </>
